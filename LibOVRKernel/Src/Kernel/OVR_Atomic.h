@@ -114,7 +114,16 @@ struct AtomicOpsRawBase
     struct AcquireSync { inline AcquireSync() { } ~AcquireSync() { asm volatile("sync\n"); } };
     struct ReleaseSync { inline ReleaseSync() { asm volatile("sync\n"); } };
 
-#elif defined(OVR_CPU_ARM) // Includes Android and iOS.
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || defined(__ARM_ARCH_6T2__)
+    // Try these defines: http://sourceforge.net/p/predef/wiki/Architectures/
+    // ARMv6 does not have the "dmb" instruction
+    // Use the instructions described at https://github.com/jbitoniau/RiftOnThePi instead
+    #define MB()  __asm__ __volatile__ ("mcr p15, 0, r0, c7, c10, 5" : : : "memory")
+    struct FullSync { inline FullSync() { MB(); } ~FullSync() { MB(); } };
+    struct AcquireSync { inline AcquireSync() { } ~AcquireSync() { MB(); } };
+    struct ReleaseSync { inline ReleaseSync() { MB(); } };
+
+#elif defined(OVR_CPU_ARM) // Includes Android and iOS, but not ARMv6
     struct FullSync { inline FullSync() { asm volatile("dmb\n"); } ~FullSync() { asm volatile("dmb\n"); } };
     struct AcquireSync { inline AcquireSync() { } ~AcquireSync() { asm volatile("dmb\n"); } };
     struct ReleaseSync { inline ReleaseSync() { asm volatile("dmb\n"); } };
