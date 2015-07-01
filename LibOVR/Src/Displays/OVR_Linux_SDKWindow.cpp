@@ -245,8 +245,9 @@ bool SDKWindow::getVisualFromDrawable(GLXDrawable drawable, XVisualInfo* vinfoOu
 {
     struct _XDisplay* display = glXGetCurrentDisplay();
 
-    unsigned int value;
-    glXQueryDrawable(display, drawable, GLX_FBCONFIG_ID, &value);
+    int value;
+    glXQueryContext(display, glXGetCurrentContext(), GLX_FBCONFIG_ID, &value);
+
     const int attribs[] = {GLX_FBCONFIG_ID, (int)value, None};
     int screen;
     glXQueryContext(display, glXGetCurrentContext(), GLX_SCREEN, &screen);
